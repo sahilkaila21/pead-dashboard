@@ -139,6 +139,13 @@
   }
   .confidence-pill strong { font-weight: 700; }
 
+  .benchmark-callout {
+    background: var(--danger-soft); color: var(--text-primary);
+    border-radius: 10px; padding: 0.85rem 1rem; margin-top: 12px;
+    font-size: 13px; line-height: 1.55;
+  }
+  .benchmark-callout strong { color: var(--danger); }
+
   .chart-card {
     background: var(--surface-1);
     border-radius: 10px;
@@ -346,8 +353,21 @@
   </div>
 
   <div class="chart-card">
-    <p class="section-sub" style="margin-bottom:10px;">Equity curve, 2019&ndash;2026</p>
+    <p class="section-sub" style="margin-bottom:10px;">Equity curve vs. S&amp;P 500 buy-and-hold, both starting at $100k</p>
     <div class="chart-wrap"><canvas id="equityChart"></canvas></div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--accent);"></span> PEAD strategy</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--text-muted);"></span> S&amp;P 500 (SPY, buy &amp; hold)</div>
+    </div>
+  </div>
+
+  <div class="benchmark-callout">
+    <strong>Honest comparison:</strong> over this same period, simply buying and
+    holding the S&amp;P 500 returned <strong>+235.9%</strong> (17.5% CAGR, Sharpe
+    0.93) vs. the strategy's <strong>+93.2%</strong> (9.2% CAGR, Sharpe 0.73).
+    2019&ndash;2026 was an exceptional bull market for the index. The strategy's
+    only edge here is a smaller worst-case drawdown (-23.4% vs. -33.7%) &mdash;
+    it did not beat the market on return, raw or risk-adjusted.
   </div>
 </section>
 
@@ -601,8 +621,11 @@ document.getElementById("gatePassword").addEventListener("keydown", (e) => {
 });
 document.getElementById("gatePassword").focus();
 
-const EQUITY_LABELS = ["2019-01","2019-04","2019-07","2019-10","2020-01","2020-04","2020-07","2020-10","2021-01","2021-04","2021-07","2021-10","2022-01","2022-04","2022-07","2022-10","2023-01","2023-04","2023-07","2023-10","2024-01","2024-04","2024-07","2024-10","2025-01","2025-04","2025-07","2025-10","2026-01","2026-04","2026-07"];
-const EQUITY_VALUES = [100000.0,112527.5,111185.78,107034.13,104058.53,96921.81,99418.68,104591.39,124837.15,127990.11,142004.14,150064.99,152938.95,128235.77,137912.5,149086.2,140907.66,145719.78,149851.77,148349.8,165313.44,168499.62,169779.61,169273.92,179701.87,185502.87,189192.72,187251.44,189789.44,193170.44,193170.44];
+const EQUITY_LABELS = ["2019-01","2019-02","2019-03","2019-04","2019-05","2019-06","2019-07","2019-08","2019-09","2019-10","2019-11","2019-12","2020-01","2020-02","2020-03","2020-04","2020-05","2020-06","2020-07","2020-08","2020-09","2020-10","2020-11","2020-12","2021-01","2021-02","2021-03","2021-04","2021-05","2021-06","2021-07","2021-08","2021-09","2021-10","2021-11","2021-12","2022-01","2022-02","2022-03","2022-04","2022-05","2022-06","2022-07","2022-08","2022-09","2022-10","2022-11","2022-12","2023-01","2023-02","2023-03","2023-04","2023-05","2023-06","2023-07","2023-08","2023-09","2023-10","2023-11","2023-12","2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12","2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07"];
+const EQUITY_VALUES = [100000.0,102182.76,110105.4,112527.5,115231.06,112004.28,111185.78,108899.57,107061.76,107034.13,104922.47,103769.36,104058.53,101770.58,96911.36,96921.81,95916.37,98980.94,99418.68,97642.61,110639.9,104591.39,94687.02,122698.35,124837.15,118177.83,131174.68,127990.11,137747.38,142318.12,142004.14,142336.86,152787.57,150064.99,160762.55,152550.36,152938.95,152807.67,136610.55,136188.51,127363.16,128235.77,128726.49,136496.59,137912.5,137912.5,142741.31,149086.2,148442.51,149669.66,146392.57,142999.54,143131.04,145719.78,149464.07,149851.77,140907.66,139079.6,136774.86,144282.34,146234.68,147266.45,148483.93,148349.8,150892.04,165009.88,165313.44,165081.16,158887.03,157451.44,154216.24,168499.62,165976.74,169779.61,171645.44,166630.39,169273.92,178671.23,178582.88,179701.87,185517.66,185502.87,186388.64,189192.72,190591.18,190058.85,191009.21,187251.44,188176.16,189789.44,193319.68];
+// S&P 500 (SPY), normalized to the same $100k start, sampled on the same
+// monthly dates as EQUITY_VALUES -- an apples-to-apples buy-and-hold benchmark.
+const SPY_VALUES = [100000.0,107946.3,112087.36,114753.01,117153.73,110232.45,119276.79,118946.03,117291.92,118846.8,124075.07,126304.16,132313.44,132007.97,125886.54,100841.79,115852.34,125176.52,127772.45,135290.17,145087.45,139240.01,136414.26,151212.4,153006.24,156093.0,161631.71,166752.31,174074.1,174685.98,179750.91,182740.96,188675.18,181922.94,192731.74,188735.01,200837.62,190428.08,180771.12,191007.04,174795.98,172733.78,161472.41,173979.69,167901.85,155913.77,163530.64,173252.66,162700.77,175509.36,168647.95,176243.56,178199.2,180905.34,191034.59,196497.16,194220.0,184589.4,182580.69,198322.08,205003.18,212181.46,222439.2,227180.86,217691.83,229634.75,238031.5,237014.49,240973.41,248954.07,250013.63,264282.19,256829.5,262597.39,256447.29,247172.67,246071.13,261157.87,272951.39,274749.99,282947.58,296219.87,302818.25,301457.82,303637.49,309077.63,305064.22,292019.24,321170.37,338056.7,333217.33];
 const FOLD_LABELS = ["2019","2020","2021","2022","2023","2024","2025"];
 const FOLD_RETURNS = [3.81, 19.49, 22.84, -2.68, -2.75, 14.11, 15.14];
 const TRADES_PER_YEAR = 62.8;
@@ -628,12 +651,13 @@ function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-function drawLineChart(canvas, labels, values) {
+function drawLineChart(canvas, labels, values, benchmarkValues) {
   const { ctx, w, h } = fitCanvas(canvas);
   ctx.clearRect(0, 0, w, h);
   const padL = 46, padR = 8, padT = 10, padB = 20;
   const plotW = w - padL - padR, plotH = h - padT - padB;
-  const min = Math.min(...values), max = Math.max(...values);
+  const allVals = benchmarkValues ? values.concat(benchmarkValues) : values;
+  const min = Math.min(...allVals), max = Math.max(...allVals);
   const pad = (max - min) * 0.08 || 1;
   const yMin = min - pad, yMax = max + pad;
   const x = i => padL + (i / (values.length - 1)) * plotW;
@@ -651,6 +675,17 @@ function drawLineChart(canvas, labels, values) {
   const labelStep = Math.ceil(labels.length / 6);
   for (let i = 0; i < labels.length; i += labelStep) {
     ctx.fillText(labels[i], x(i) - 14, h - 4);
+  }
+
+  // Benchmark line drawn first (underneath), muted, no fill -- a reference
+  // line, not the headline series.
+  if (benchmarkValues) {
+    ctx.beginPath();
+    benchmarkValues.forEach((v, i) => { const px = x(i), py = y(v); i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); });
+    ctx.strokeStyle = mutedColor; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]); ctx.stroke();
+    ctx.setLineDash([]);
+    const lx = x(benchmarkValues.length - 1), ly = y(benchmarkValues[benchmarkValues.length - 1]);
+    ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI * 2); ctx.fillStyle = mutedColor; ctx.fill();
   }
 
   ctx.beginPath();
@@ -1124,7 +1159,7 @@ document.getElementById("playbackBtn").addEventListener("click", () => {
 });
 
 function redrawStatic() {
-  drawLineChart(document.getElementById("equityChart"), EQUITY_LABELS, EQUITY_VALUES);
+  drawLineChart(document.getElementById("equityChart"), EQUITY_LABELS, EQUITY_VALUES, SPY_VALUES);
   drawBarChart(document.getElementById("foldChart"), FOLD_LABELS, FOLD_RETURNS);
   updateLab();
 }
