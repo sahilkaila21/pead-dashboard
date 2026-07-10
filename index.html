@@ -79,6 +79,32 @@
   }
   h1 { font-size: 21px; font-weight: 620; margin: 0 0 4px; letter-spacing: -0.01em; text-wrap: balance; }
   .sub { font-size: 13px; color: var(--text-secondary); margin: 0; }
+  .byline { font-size: 12px; color: var(--text-muted); margin: 4px 0 0; }
+
+  .gate-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--surface-0);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  .gate-card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    padding: 2rem 1.75rem; max-width: 340px; width: 100%; text-align: center;
+  }
+  .gate-card h2 { font-size: 16px; margin: 0 0 6px; }
+  .gate-card p { font-size: 12.5px; color: var(--text-muted); margin: 0 0 16px; }
+  .gate-card input {
+    width: 100%; background: var(--surface-3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.6rem 0.8rem; font-size: 14px; color: var(--text-primary); outline: none; margin-bottom: 10px;
+    box-sizing: border-box; text-align: center;
+  }
+  .gate-card input:focus { border-color: var(--accent); }
+  .gate-card button {
+    width: 100%; background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 0.6rem; font-size: 13.5px; font-weight: 620; cursor: pointer;
+  }
+  .gate-card button:hover { opacity: 0.9; }
+  .gate-error { color: var(--danger); font-size: 12px; margin-top: 10px; min-height: 14px; }
   .mode-badge {
     display: inline-flex; align-items: center; gap: 6px;
     margin-top: 10px; padding: 4px 10px; border-radius: 100px;
@@ -281,9 +307,22 @@
 <body>
 
 
+<div class="gate-overlay" id="gateOverlay">
+  <div class="gate-card">
+    <h2>Private dashboard</h2>
+    <p>Enter the password to view this backtest.</p>
+    <input type="password" id="gatePassword" placeholder="Password" autocomplete="off" aria-label="Password">
+    <button id="gateSubmit">Unlock</button>
+    <div class="gate-error" id="gateError"></div>
+  </div>
+</div>
+
+<div id="dashboardContent" style="display:none;">
+
 <header class="top">
   <h1>Momentum &amp; PEAD backtest dashboard</h1>
   <p class="sub">85 liquid large-caps &middot; 2019&ndash;2026 &middot; $100k start &middot; net of 5bps slippage</p>
+  <p class="byline">Created by Sahil Kaila &middot; Last updated 2026-07-10</p>
   <span class="mode-badge">Backtest &mdash; not live trading</span>
 </header>
 
@@ -526,12 +565,42 @@
 </section>
 
 <footer>
-  Generated from <code>python -m engine.main --strategy pead</code> in the
+  Created by Sahil Kaila &middot; Last updated 2026-07-10. Generated from
+  <code>python -m engine.main --strategy pead</code> in the
   <a href="https://github.com/sahilkaila21/short-term-trading">short-term-trading</a> repo.
   Research/backtest only &mdash; not investment advice, not live trading.
 </footer>
 
+</div>
+
 <script>
+const GATE_PASSWORD = "moderamedford";
+const GATE_STORAGE_KEY = "pead_dashboard_unlocked";
+
+function unlockDashboard() {
+  document.getElementById("gateOverlay").style.display = "none";
+  document.getElementById("dashboardContent").style.display = "block";
+  redrawStatic();
+}
+
+function attemptUnlock() {
+  const input = document.getElementById("gatePassword");
+  if (input.value === GATE_PASSWORD) {
+    localStorage.setItem(GATE_STORAGE_KEY, "true");
+    unlockDashboard();
+  } else {
+    document.getElementById("gateError").textContent = "Incorrect password.";
+    input.value = "";
+    input.focus();
+  }
+}
+
+document.getElementById("gateSubmit").addEventListener("click", attemptUnlock);
+document.getElementById("gatePassword").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") attemptUnlock();
+});
+document.getElementById("gatePassword").focus();
+
 const EQUITY_LABELS = ["2019-01","2019-04","2019-07","2019-10","2020-01","2020-04","2020-07","2020-10","2021-01","2021-04","2021-07","2021-10","2022-01","2022-04","2022-07","2022-10","2023-01","2023-04","2023-07","2023-10","2024-01","2024-04","2024-07","2024-10","2025-01","2025-04","2025-07","2025-10","2026-01","2026-04","2026-07"];
 const EQUITY_VALUES = [100000.0,112527.5,111185.78,107034.13,104058.53,96921.81,99418.68,104591.39,124837.15,127990.11,142004.14,150064.99,152938.95,128235.77,137912.5,149086.2,140907.66,145719.78,149851.77,148349.8,165313.44,168499.62,169779.61,169273.92,179701.87,185502.87,189192.72,187251.44,189789.44,193170.44,193170.44];
 const FOLD_LABELS = ["2019","2020","2021","2022","2023","2024","2025"];
@@ -1058,6 +1127,13 @@ function redrawStatic() {
   drawLineChart(document.getElementById("equityChart"), EQUITY_LABELS, EQUITY_VALUES);
   drawBarChart(document.getElementById("foldChart"), FOLD_LABELS, FOLD_RETURNS);
   updateLab();
+}
+
+// Runs after all data constants above are initialized, so it's safe for
+// unlockDashboard() to call redrawStatic() (which reads EQUITY_LABELS etc.)
+// immediately for a returning, already-unlocked visitor.
+if (localStorage.getItem(GATE_STORAGE_KEY) === "true") {
+  unlockDashboard();
 }
 
 // Defer the first draw so layout has settled (canvas measurement via
